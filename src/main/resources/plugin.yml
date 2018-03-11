@@ -1,0 +1,4 @@
+name: hedgeMaze
+version: "1.0-SNAPSHOT"
+author: Grant Mills
+main: millscraft.HedgeMaze
