@@ -7,6 +7,11 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.material.Leaves;
+import org.bukkit.material.MaterialData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 
@@ -16,8 +21,10 @@ import java.util.ArrayList;
  * @since 3/11/18
  */
 public class MinecraftRendererImpl implements Renderer<Location> {
+	private static final Logger logger = LoggerFactory.getLogger(MinecraftRendererImpl.class);
 
 	private static final Integer CELL_SIZE = 1;
+	private static final Integer WALL_THICKNESS = 1;
 
 	private Location startingLocation;
 	private Integer wallHeight = 2;
@@ -57,17 +64,29 @@ public class MinecraftRendererImpl implements Renderer<Location> {
 
 		//Render the maze
 		//Iterate over each cell
+		Integer startingX = startingLocation.getBlockX();
+		Integer startingZ = startingLocation.getBlockZ();
+		logger.debug("Beginning rendering...");
 		for(int x = 0; x < grid.getGrid().size(); x++) {
 			java.util.List<Cell> row = grid.getGrid().get(x);
+			logger.debug("-Printing row " + x);
+
 			for(int y = 0; y < row.size(); y++) {
 				Cell currentCell = row.get(y);
+				logger.debug("--Printing cell " + y);
 				
 				//All mazes will be rendered south-east of the given location
 				//as that is the positive direction for each axis
-				Integer gridX = currentCell.getColumn() * CELL_SIZE;
-				Integer gridZ = currentCell.getRow() * CELL_SIZE;
-				Integer gridX2 = gridX + CELL_SIZE;
-				Integer gridZ2 = gridZ + CELL_SIZE;
+				Integer gridX = startingX;
+				Integer gridZ = startingZ;
+				if(currentCell.getColumn() != 0) {
+					gridX = ((currentCell.getColumn()) * (CELL_SIZE + WALL_THICKNESS)) + startingX;
+				}
+				if(currentCell.getRow() != 0) {
+					gridZ = ((currentCell.getRow()) * (CELL_SIZE + WALL_THICKNESS)) + startingZ;
+				}
+				Integer gridX2 = gridX + CELL_SIZE + WALL_THICKNESS;
+				Integer gridZ2 = gridZ + CELL_SIZE + WALL_THICKNESS;
 
 				// Check linked cells
 				// We only have to check two directions for links as they will handle drawing all the walls
@@ -85,6 +104,7 @@ public class MinecraftRendererImpl implements Renderer<Location> {
 				}
 			}
 		}
+		logger.info("End rendering.");
 
 		return startingLocation;
 	}
@@ -131,13 +151,13 @@ public class MinecraftRendererImpl implements Renderer<Location> {
 		}else if(startingZ.equals(endingZ)) {
 			//Builds a wall West to East
 			if(startingX > endingX) {
-				for(int a1 = startingZ; a1 <= endingZ; a1++) {
+				for(int a1 = startingX; a1 <= endingX; a1++) {
 					for(int c1 = startingY; c1 <= wallHeightY; c1++) {
 						wallBlocks.add(world.getBlockAt(a1, c1, startingZ));
 					}
 				}
 			}else if(endingX > startingX) {
-				for(int b1 = startingZ; b1 <= endingZ; b1++) {
+				for(int b1 = startingX; b1 <= endingX; b1++) {
 					for(int d1 = startingY; d1 <= wallHeightY; d1++) {
 						wallBlocks.add(world.getBlockAt(b1, d1, startingZ));
 					}
@@ -149,7 +169,19 @@ public class MinecraftRendererImpl implements Renderer<Location> {
 
 		//Convert their material type
 		for(Block block : wallBlocks) {
+			//Set the material to whatever they give us
 			block.setType(wallMaterial);
+
+			//If the block material's data is an instance of leaves then set to not decayable
+			BlockState blockState = block.getState();
+			MaterialData blockMaterialData = blockState.getData();
+			if(blockMaterialData instanceof Leaves) {
+				Leaves leaves = (Leaves) blockMaterialData;
+				leaves.setDecayable(false);
+				//Actually set the data
+				blockState.setData(leaves);
+				blockState.update(true);
+			}
 		}
 	}
 

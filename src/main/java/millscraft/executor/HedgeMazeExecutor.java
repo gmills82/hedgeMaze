@@ -9,6 +9,8 @@ import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Grant Mills
@@ -16,6 +18,7 @@ import org.bukkit.command.CommandSender;
  */
 public class HedgeMazeExecutor implements CommandExecutor {
 
+	private static final Logger logger = LoggerFactory.getLogger(HedgeMazeExecutor.class);
 	/**
 	 * Executes the given command
 	 * @param commandSender - source of the command
@@ -29,12 +32,13 @@ public class HedgeMazeExecutor implements CommandExecutor {
 		//Parse arguments and use defaults if arguments are missing
 
 		//Create the maze
-		Grid maze = new Grid(30,30);
+		Grid maze = new Grid(20,20);
 		GeneratorAlgorithm algorithm = new Sidewinder();
 		Grid preparedMaze = algorithm.prepareMaze(maze);
 
 		//Print the maze
 		millscraft.mazeGenerator.render.Renderer<Location> renderer = new MinecraftRendererImpl(Bukkit.getWorlds().get(0).getSpawnLocation());
+		logger.info("Creating a hedge maze at " + Bukkit.getWorlds().get(0).getSpawnLocation().toString());
 		Location startingLocation = renderer.render(preparedMaze);
 
 		return true;
