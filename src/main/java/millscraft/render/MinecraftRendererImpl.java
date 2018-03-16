@@ -2,6 +2,7 @@ package millscraft.render;
 
 import millscraft.mazeGenerator.Cell;
 import millscraft.mazeGenerator.Grid;
+import millscraft.mazeGenerator.generator.GeneratorAlgorithm;
 import millscraft.mazeGenerator.render.Renderer;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -23,14 +24,16 @@ import java.util.ArrayList;
 public class MinecraftRendererImpl implements Renderer<Location> {
 	private static final Logger logger = LoggerFactory.getLogger(MinecraftRendererImpl.class);
 
-	private static final Integer CELL_SIZE = 1;
+
 	private static final Integer WALL_THICKNESS = 1;
 
+	private Integer cellSize = 1;
 	private Location startingLocation;
 	private Integer wallHeight = 2;
 	private Material wallMaterial = Material.LEAVES;
 	private World world;
 	private Integer yLevel;
+	private GeneratorAlgorithm algorithm;
 
 	public MinecraftRendererImpl(Location startingLocation) {
 		this.startingLocation = startingLocation;
@@ -51,6 +54,28 @@ public class MinecraftRendererImpl implements Renderer<Location> {
 		this.startingLocation = startingLocation;
 		this.wallHeight = wallHeight;
 		this.wallMaterial = wallMaterial;
+
+		this.world = startingLocation.getWorld();
+		this.yLevel = startingLocation.getBlockY();
+	}
+
+	public MinecraftRendererImpl(Location startingLocation, Integer wallHeight, Material wallMaterial, GeneratorAlgorithm algorithm) {
+		this.startingLocation = startingLocation;
+		this.wallHeight = wallHeight;
+		this.wallMaterial = wallMaterial;
+		this.algorithm = algorithm;
+
+		this.world = startingLocation.getWorld();
+		this.yLevel = startingLocation.getBlockY();
+	}
+
+	public MinecraftRendererImpl(Location startingLocation, Integer wallHeight, Integer cellSize, Material wallMaterial, GeneratorAlgorithm algorithm) {
+		this.startingLocation = startingLocation;
+		this.wallHeight = wallHeight;
+		this.cellSize = cellSize;
+		this.wallMaterial = wallMaterial;
+		this.algorithm = algorithm;
+
 
 		this.world = startingLocation.getWorld();
 		this.yLevel = startingLocation.getBlockY();
@@ -80,13 +105,13 @@ public class MinecraftRendererImpl implements Renderer<Location> {
 				Integer gridX = startingX;
 				Integer gridZ = startingZ;
 				if(currentCell.getColumn() != 0) {
-					gridX = ((currentCell.getColumn()) * (CELL_SIZE + WALL_THICKNESS)) + startingX;
+					gridX = ((currentCell.getColumn()) * (cellSize + WALL_THICKNESS)) + startingX;
 				}
 				if(currentCell.getRow() != 0) {
-					gridZ = ((currentCell.getRow()) * (CELL_SIZE + WALL_THICKNESS)) + startingZ;
+					gridZ = ((currentCell.getRow()) * (cellSize + WALL_THICKNESS)) + startingZ;
 				}
-				Integer gridX2 = gridX + CELL_SIZE + WALL_THICKNESS;
-				Integer gridZ2 = gridZ + CELL_SIZE + WALL_THICKNESS;
+				Integer gridX2 = gridX + cellSize + WALL_THICKNESS;
+				Integer gridZ2 = gridZ + cellSize + WALL_THICKNESS;
 
 				// Check linked cells
 				// We only have to check two directions for links as they will handle drawing all the walls
@@ -184,5 +209,6 @@ public class MinecraftRendererImpl implements Renderer<Location> {
 			}
 		}
 	}
+
 
 }
