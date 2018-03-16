@@ -1,7 +1,7 @@
 name: hedgeMaze
-version: "1.1-SNAPSHOT"
+version: "1.2-SNAPSHOT"
 author: Grant Mills
-main: millscraft.HedgeMaze
+main: HedgeMaze
 commands:
    hedgeMaze:
       description: Creates a hedge maze south and east of the given coordinates

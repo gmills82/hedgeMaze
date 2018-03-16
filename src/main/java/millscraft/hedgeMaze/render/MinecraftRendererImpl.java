@@ -1,4 +1,4 @@
-package millscraft.render;
+package millscraft.hedgeMaze.render;
 
 import millscraft.mazeGenerator.Cell;
 import millscraft.mazeGenerator.Grid;

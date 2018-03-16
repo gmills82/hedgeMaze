@@ -1,9 +1,10 @@
-package millscraft.executor;
+package millscraft.hedgeMaze.executor;
 
+import millscraft.hedgeMaze.utils.Algorithms;
 import millscraft.mazeGenerator.Grid;
 import millscraft.mazeGenerator.generator.GeneratorAlgorithm;
 import millscraft.mazeGenerator.generator.Sidewinder;
-import millscraft.render.MinecraftRendererImpl;
+import millscraft.hedgeMaze.render.MinecraftRendererImpl;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -12,6 +13,8 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Arrays;
 
 /**
  * @author Grant Mills
@@ -37,8 +40,6 @@ public class HedgeMazeExecutor implements CommandExecutor {
 	 */
 	@Override
 	public boolean onCommand(CommandSender commandSender, Command command, String alias, String[] arguments) {
-		//Parse arguments and use defaults if arguments are missing
-
 		//Create the maze using defaults
 		//Arguments should be in following order:
 		//[0]X, [1]Y, [2]Z, [3]Height, [4]width, [5]wallHeight, [6]cellSize, [7]wallMaterial, [8]algorithm
@@ -54,20 +55,7 @@ public class HedgeMazeExecutor implements CommandExecutor {
 
 		//Give help dialog
 		if(arguments.length == 1 && arguments[0].toLowerCase().equals("help")) {
-			commandSender.sendMessage("Usage for " + command.toString() + " [Xcoord] [Ycoord] [Zcoord] [mazeHeight] [mazeWidth] [wallHeight] [cellSize] [wallMaterial] [mazeAlgorithm]");
-			commandSender.sendMessage("Mazes are always printed south-east of the given location coordinates.");
-			commandSender.sendMessage("Xcoord - The X value of the location of the maze (Required)");
-			commandSender.sendMessage("Ycoord - The Y value of the location of the maze (Required)");
-			commandSender.sendMessage("Zcoord - The Z value of the location of the maze (Required)");
-			commandSender.sendMessage("The maze is an array of arrays of cells, or a 2D array.");
-			commandSender.sendMessage("mazeHeight - The number of rows of the maze");
-			commandSender.sendMessage("mazeWidth - The number of columns of the maze");
-			commandSender.sendMessage("WARNING: Creating extremely large mazes may degrade server performance.");
-			commandSender.sendMessage("wallHeight - How many blocks high you want the maze walls");
-			commandSender.sendMessage("wallMaterial - The block to build the maze with, select from here https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html");
-			//TODO: Update this messaging
-			commandSender.sendMessage("mazeAlgorithm - Not currently used");
-			commandSender.sendMessage("TIP: Make sure the area for the maze is clear as the plugin will overwrite any blocks in the area wherever it prints walls. Also existing blocks in cells will block maze paths.");
+			printUsage(commandSender, command);
 			return false;
 		}
 
@@ -77,7 +65,7 @@ public class HedgeMazeExecutor implements CommandExecutor {
 			return false;
 		}
 
-		//Parse arguments from strings to Integers
+		//Parse arguments from strings to appropriate types
 		for(int x = 0; x < arguments.length; x++) {
 			if(x == 0) {
 				argXValue = Integer.getInteger(arguments[0]);
@@ -103,8 +91,23 @@ public class HedgeMazeExecutor implements CommandExecutor {
 					return false;
 				}
 			}else if(x == 8) {
-				//TODO: Create an Enum of Algorithm strings that map to the classes
-				//TODO: Set that value here
+				//Parse user input and try to match to algorithm class
+				String formattedAlgorithmString = arguments[8].toUpperCase();
+				formattedAlgorithmString = formattedAlgorithmString.replace(" ", "_");
+				if(Algorithms.valueOf(formattedAlgorithmString) != null) {
+					try {
+						//Try to instantiate the algorithm class
+						argAlgorithm = Algorithms.valueOf(formattedAlgorithmString).getAlgorithmClazz().newInstance();
+					} catch (InstantiationException e) {
+						commandSender.sendMessage("There was an error creating the maze with that algorithm.");
+						logger.error("Error instantiating algorithm " + Algorithms.valueOf(formattedAlgorithmString).getAlgorithmClazz().getName());
+						e.printStackTrace();
+					} catch (IllegalAccessException e) {
+						commandSender.sendMessage("There was an error creating the maze with that algorithm.");
+						logger.error("Error instantiating algorithm " + Algorithms.valueOf(formattedAlgorithmString).getAlgorithmClazz().getName());
+						e.printStackTrace();
+					}
+				}
 			}
 		}
 
@@ -134,5 +137,23 @@ public class HedgeMazeExecutor implements CommandExecutor {
 		}
 
 		return true;
+	}
+
+	private void printUsage(CommandSender commandSender, Command command) {
+		commandSender.sendMessage("Usage for " + command.toString() + " [Xcoord] [Ycoord] [Zcoord] [mazeHeight] [mazeWidth] [wallHeight] [cellSize] [wallMaterial] [mazeAlgorithm]");
+		commandSender.sendMessage("Mazes are always printed south-east of the given location coordinates.");
+		commandSender.sendMessage("Xcoord - The X value of the location of the maze (Required)");
+		commandSender.sendMessage("Ycoord - The Y value of the location of the maze (Required)");
+		commandSender.sendMessage("Zcoord - The Z value of the location of the maze (Required)");
+		commandSender.sendMessage("The maze is an array of arrays of cells, or a 2D array.");
+		commandSender.sendMessage("mazeHeight - The number of rows of the maze");
+		commandSender.sendMessage("mazeWidth - The number of columns of the maze");
+		commandSender.sendMessage("WARNING: Creating extremely large mazes may degrade server performance.");
+		commandSender.sendMessage("wallHeight - How many blocks high you want the maze walls");
+		commandSender.sendMessage("wallMaterial - The block to build the maze with, select from here https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html");
+
+		String algorithmOptions = Arrays.asList(Algorithms.values()).toString();
+		commandSender.sendMessage("mazeAlgorithm - " + algorithmOptions);
+		commandSender.sendMessage("TIP: Make sure the area for the maze is clear as the plugin will overwrite any blocks in the area wherever it prints walls. Also existing blocks in cells will block maze paths.");
 	}
 }

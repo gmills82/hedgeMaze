@@ -1,6 +1,6 @@
-package millscraft;
+package millscraft.hedgeMaze;
 
-import millscraft.executor.HedgeMazeExecutor;
+import millscraft.hedgeMaze.executor.HedgeMazeExecutor;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.logging.Level;
