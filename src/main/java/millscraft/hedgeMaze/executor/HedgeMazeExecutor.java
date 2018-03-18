@@ -68,75 +68,84 @@ public class HedgeMazeExecutor implements CommandExecutor {
 		//Parse arguments from strings to appropriate types
 		for(int x = 0; x < arguments.length; x++) {
 			if(x == 0) {
-				argXValue = Integer.getInteger(arguments[0]);
+				argXValue = Integer.parseInt(arguments[0]);
 			}else if(x == 1){
-				argYValue = Integer.getInteger(arguments[1]);
+				argYValue = Integer.parseInt(arguments[1]);
 			}else if(x == 2){
-				argZValue = Integer.getInteger(arguments[2]);
+				argZValue = Integer.parseInt(arguments[2]);
 			}else if(x == 3) {
-				argMazeHeight = Integer.getInteger(arguments[3]);
+				argMazeHeight = Integer.parseInt(arguments[3]);
 			}else if(x == 4) {
-				argMazeWidth = Integer.getInteger(arguments[4]);
+				argMazeWidth = Integer.parseInt(arguments[4]);
 			}else if(x == 5) {
-				argWallHeight = Integer.getInteger(arguments[5]);
+				argWallHeight = Integer.parseInt(arguments[5]);
 			}else if(x == 6) {
-				argCellSize = Integer.getInteger(arguments[6]);
+				argCellSize = Integer.parseInt(arguments[6]);
 			}else if(x == 7) {
 				String formattedMaterialString = arguments[7].toUpperCase();
 				formattedMaterialString = formattedMaterialString.replace(" ", "_");
-				if(Material.valueOf(formattedMaterialString) != null) {
+				try {
 					argWallMaterial = Material.valueOf(formattedMaterialString);
-				}else {
+				}catch(Exception e) {
 					commandSender.sendMessage("Trouble parsing the desired material for the maze walls. Please use a value from this page, https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html and try your command again.");
+					e.printStackTrace();
 					return false;
 				}
 			}else if(x == 8) {
 				//Parse user input and try to match to algorithm class
 				String formattedAlgorithmString = arguments[8].toUpperCase();
 				formattedAlgorithmString = formattedAlgorithmString.replace(" ", "_");
-				if(Algorithms.valueOf(formattedAlgorithmString) != null) {
-					try {
-						//Try to instantiate the algorithm class
-						argAlgorithm = Algorithms.valueOf(formattedAlgorithmString).getAlgorithmClazz().newInstance();
-					} catch (InstantiationException e) {
-						commandSender.sendMessage("There was an error creating the maze with that algorithm.");
-						logger.error("Error instantiating algorithm " + Algorithms.valueOf(formattedAlgorithmString).getAlgorithmClazz().getName());
-						e.printStackTrace();
-					} catch (IllegalAccessException e) {
-						commandSender.sendMessage("There was an error creating the maze with that algorithm.");
-						logger.error("Error instantiating algorithm " + Algorithms.valueOf(formattedAlgorithmString).getAlgorithmClazz().getName());
-						e.printStackTrace();
-					}
+				try {
+					//Try to instantiate the algorithm class
+					argAlgorithm = Algorithms.valueOf(formattedAlgorithmString).getAlgorithmClazz().newInstance();
+				} catch (InstantiationException e) {
+					commandSender.sendMessage("There was an error creating the maze with that algorithm.");
+					logger.error("Error instantiating algorithm " + Algorithms.valueOf(formattedAlgorithmString).getAlgorithmClazz().getName());
+					e.printStackTrace();
+					return false;
+				} catch (IllegalAccessException e) {
+					commandSender.sendMessage("There was an error creating the maze with that algorithm.");
+					logger.error("Error instantiating algorithm " + Algorithms.valueOf(formattedAlgorithmString).getAlgorithmClazz().getName());
+					e.printStackTrace();
+					return false;
+				} catch (IllegalArgumentException e) {
+					commandSender.sendMessage("No maze algorithm found with name: " + arguments[8].toUpperCase());
+					e.printStackTrace();
+					return false;
 				}
 			}
 		}
 
 		//Construct the maze
-		Grid maze = new Grid(argMazeHeight, argMazeWidth);
-		Grid preparedMaze = argAlgorithm.prepareMaze(maze);
+		if(argMazeHeight != null && argMazeWidth != null) {
+			Grid maze = new Grid(argMazeHeight, argMazeWidth);
+			Grid preparedMaze = argAlgorithm.prepareMaze(maze);
 
-		//Print the maze
-		Location mazeLocation = null;
-		if(argXValue != null && argYValue != null && argZValue != null) {
-			mazeLocation = new Location(Bukkit.getWorlds().get(0), argXValue, argYValue, argZValue);
+			//Print the maze
+			Location mazeLocation = null;
+			if (argXValue != null && argYValue != null && argZValue != null) {
+				mazeLocation = new Location(Bukkit.getWorlds().get(0), argXValue, argYValue, argZValue);
+			}
+
+			//Expected GOOD path
+			if (mazeLocation != null) {
+				//Setup the renderer with the user args/defaults
+				millscraft.mazeGenerator.render.Renderer<Location> renderer = new MinecraftRendererImpl(mazeLocation, argWallHeight, argCellSize, argWallMaterial, argAlgorithm);
+
+				//Log this for admins
+				logger.info("Creating a hedge maze at " + Bukkit.getWorlds().get(0).getSpawnLocation().toString() + ". Created by " + commandSender.getName());
+
+				//The actual render command
+				Location startingLocation = renderer.render(preparedMaze);
+
+				commandSender.sendMessage("Your maze is ready at " + mazeLocation.toString());
+				return true;
+			} else {
+				commandSender.sendMessage("Could not get location in world: " + Bukkit.getWorlds().get(0).getName() + " using coords X: " + argXValue + ", Y: " + argYValue + ", Z: " + argZValue + ".");
+				return false;
+			}
 		}
-		if(mazeLocation != null) {
-			//Setup the renderer with the user args/defaults
-			millscraft.mazeGenerator.render.Renderer<Location> renderer = new MinecraftRendererImpl(mazeLocation, argWallHeight, argCellSize, argWallMaterial, argAlgorithm);
-
-			//Log this for admins
-			logger.info("Creating a hedge maze at " + Bukkit.getWorlds().get(0).getSpawnLocation().toString() + ". Created by " + commandSender.getName());
-
-			//The actual render command
-			Location startingLocation = renderer.render(preparedMaze);
-
-			commandSender.sendMessage("Your maze is ready at " + mazeLocation.toString());
-		}else {
-			commandSender.sendMessage("Could not get location in world: " + Bukkit.getWorlds().get(0).getName() + " using coords X: " + argXValue + ", Y: " + argYValue + ", Z: " + argZValue + ".");
-			return false;
-		}
-
-		return true;
+		return false;
 	}
 
 	private void printUsage(CommandSender commandSender, Command command) {
