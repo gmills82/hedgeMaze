@@ -4,7 +4,7 @@
 
     <artifactId>hedgeMaze</artifactId>
     <groupId>millscraft</groupId>
-    <version>1.2</version>
+    <version>1.3</version>
 
     <!--Repositories-->
     <repositories>
@@ -48,7 +48,7 @@
         <dependency>
             <groupId>millscraft</groupId>
             <artifactId>mazeGenerator</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.2</version>
         </dependency>
 
         <dependency>

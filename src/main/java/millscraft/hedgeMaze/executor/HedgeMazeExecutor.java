@@ -57,6 +57,9 @@ public class HedgeMazeExecutor implements CommandExecutor {
 		if(arguments.length == 1 && arguments[0].toLowerCase().equals("help")) {
 			printUsage(commandSender, command);
 			return false;
+		}else if(arguments.length == 2 && arguments[0].toLowerCase().equals("help") && arguments[1].toLowerCase().equals("args")) {
+			printArgsDetails(commandSender, command);
+			return false;
 		}
 
 		//Check for required args
@@ -118,6 +121,7 @@ public class HedgeMazeExecutor implements CommandExecutor {
 
 		//Construct the maze
 		if(argMazeHeight != null && argMazeWidth != null) {
+			//Prepare maze with specified algorithm
 			Grid maze = new Grid(argMazeHeight, argMazeWidth);
 			Grid preparedMaze = argAlgorithm.prepareMaze(maze);
 
@@ -130,7 +134,7 @@ public class HedgeMazeExecutor implements CommandExecutor {
 			//Expected GOOD path
 			if (mazeLocation != null) {
 				//Setup the renderer with the user args/defaults
-				millscraft.mazeGenerator.render.Renderer<Location> renderer = new MinecraftRendererImpl(mazeLocation, argWallHeight, argCellSize, argWallMaterial, argAlgorithm);
+				millscraft.mazeGenerator.render.Renderer<Location> renderer = new MinecraftRendererImpl(mazeLocation, argWallHeight, argCellSize, argWallMaterial);
 
 				//Log this for admins
 				logger.info("Creating a hedge maze at " + Bukkit.getWorlds().get(0).getSpawnLocation().toString() + ". Created by " + commandSender.getName());
@@ -151,18 +155,20 @@ public class HedgeMazeExecutor implements CommandExecutor {
 	private void printUsage(CommandSender commandSender, Command command) {
 		commandSender.sendMessage("Usage for " + command.toString() + " [Xcoord] [Ycoord] [Zcoord] [mazeHeight] [mazeWidth] [wallHeight] [cellSize] [wallMaterial] [mazeAlgorithm]");
 		commandSender.sendMessage("Mazes are always printed south-east of the given location coordinates.");
+		commandSender.sendMessage("TIP: Make sure the area for the maze is clear as the plugin will overwrite any blocks in the area wherever it prints walls. Also existing blocks in cells will block maze paths.");
+		commandSender.sendMessage("To see more details on each argument, type /hedgeMaze help args.");
+	}
+
+	private void printArgsDetails(CommandSender commandSender, Command command) {
 		commandSender.sendMessage("Xcoord - The X value of the location of the maze (Required)");
 		commandSender.sendMessage("Ycoord - The Y value of the location of the maze (Required)");
 		commandSender.sendMessage("Zcoord - The Z value of the location of the maze (Required)");
-		commandSender.sendMessage("The maze is an array of arrays of cells, or a 2D array.");
 		commandSender.sendMessage("mazeHeight - The number of rows of the maze");
 		commandSender.sendMessage("mazeWidth - The number of columns of the maze");
-		commandSender.sendMessage("WARNING: Creating extremely large mazes may degrade server performance.");
 		commandSender.sendMessage("wallHeight - How many blocks high you want the maze walls");
+		commandSender.sendMessage("cellSize - The size of each cell of the maze");
 		commandSender.sendMessage("wallMaterial - The block to build the maze with, select from here https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html");
-
 		String algorithmOptions = Arrays.asList(Algorithms.values()).toString();
 		commandSender.sendMessage("mazeAlgorithm - " + algorithmOptions);
-		commandSender.sendMessage("TIP: Make sure the area for the maze is clear as the plugin will overwrite any blocks in the area wherever it prints walls. Also existing blocks in cells will block maze paths.");
 	}
 }

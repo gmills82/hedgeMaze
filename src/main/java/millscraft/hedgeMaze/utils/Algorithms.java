@@ -1,5 +1,6 @@
 package millscraft.hedgeMaze.utils;
 
+import millscraft.mazeGenerator.generator.AldousBroder;
 import millscraft.mazeGenerator.generator.BinaryTree;
 import millscraft.mazeGenerator.generator.GeneratorAlgorithm;
 import millscraft.mazeGenerator.generator.Sidewinder;
@@ -9,8 +10,9 @@ import millscraft.mazeGenerator.generator.Sidewinder;
  * @since 3/16/18
  */
 public enum Algorithms {
+	BINARYTREE(BinaryTree.class),
 	SIDEWINDER(Sidewinder.class),
-	BINARYTREE(BinaryTree.class);
+	ALDOUSBRODER(AldousBroder.class);
 
 	private Class<? extends GeneratorAlgorithm> algorithmClazz;
 

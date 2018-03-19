@@ -2,7 +2,6 @@ package millscraft.hedgeMaze.render;
 
 import millscraft.mazeGenerator.Cell;
 import millscraft.mazeGenerator.Grid;
-import millscraft.mazeGenerator.generator.GeneratorAlgorithm;
 import millscraft.mazeGenerator.render.Renderer;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -27,55 +26,18 @@ public class MinecraftRendererImpl implements Renderer<Location> {
 
 	private static final Integer WALL_THICKNESS = 1;
 
-	private Integer cellSize = 1;
+	private Integer cellSize;
 	private Location startingLocation;
-	private Integer wallHeight = 2;
-	private Material wallMaterial = Material.LEAVES;
+	private Integer wallHeight;
+	private Material wallMaterial;
 	private World world;
 	private Integer yLevel;
-	private GeneratorAlgorithm algorithm;
 
-	public MinecraftRendererImpl(Location startingLocation) {
-		this.startingLocation = startingLocation;
-
-		this.world = startingLocation.getWorld();
-		this.yLevel = startingLocation.getBlockY();
-	}
-
-	public MinecraftRendererImpl(Location startingLocation, Integer wallHeight) {
-		this.startingLocation = startingLocation;
-		this.wallHeight = wallHeight;
-
-		this.world = startingLocation.getWorld();
-		this.yLevel = startingLocation.getBlockY();
-	}
-
-	public MinecraftRendererImpl(Location startingLocation, Integer wallHeight, Material wallMaterial) {
-		this.startingLocation = startingLocation;
-		this.wallHeight = wallHeight;
-		this.wallMaterial = wallMaterial;
-
-		this.world = startingLocation.getWorld();
-		this.yLevel = startingLocation.getBlockY();
-	}
-
-	public MinecraftRendererImpl(Location startingLocation, Integer wallHeight, Material wallMaterial, GeneratorAlgorithm algorithm) {
-		this.startingLocation = startingLocation;
-		this.wallHeight = wallHeight;
-		this.wallMaterial = wallMaterial;
-		this.algorithm = algorithm;
-
-		this.world = startingLocation.getWorld();
-		this.yLevel = startingLocation.getBlockY();
-	}
-
-	public MinecraftRendererImpl(Location startingLocation, Integer wallHeight, Integer cellSize, Material wallMaterial, GeneratorAlgorithm algorithm) {
+	public MinecraftRendererImpl(Location startingLocation, Integer wallHeight, Integer cellSize, Material wallMaterial) {
 		this.startingLocation = startingLocation;
 		this.wallHeight = wallHeight;
 		this.cellSize = cellSize;
 		this.wallMaterial = wallMaterial;
-		this.algorithm = algorithm;
-
 
 		this.world = startingLocation.getWorld();
 		this.yLevel = startingLocation.getBlockY();
